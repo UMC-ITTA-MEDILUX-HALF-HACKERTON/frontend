@@ -1,0 +1,13 @@
+# 이슈와 PR에 붙이는 라벨 정의. 이슈 템플릿(.github/ISSUE_TEMPLATE)의 labels 와 같은 이름이다.
+# GitHub 이 이 파일을 자동으로 적용하지는 않는다. 저장소에 만들 때는 아래처럼 쓴다.
+#   gh label create feature --color 84b6eb --description "기능 추가 또는 개선" --repo OWNER/REPO
+# 라벨을 임의로 늘리지 않는다. 새 라벨이 필요하면 이 파일과 WORKFLOW.md 를 함께 고친다.
+- name: feature
+  color: "84b6eb"
+  description: 기능 추가 또는 개선
+- name: bug
+  color: "d73a4a"
+  description: 버그 수정
+- name: refactor
+  color: "fbca04"
+  description: 유지 보수 (리팩터링, 문서 작업 포함)
