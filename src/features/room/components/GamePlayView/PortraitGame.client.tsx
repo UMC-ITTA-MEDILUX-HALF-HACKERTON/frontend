@@ -85,9 +85,24 @@ export function PortraitGame({ session, onExit }: { session: GameSession; onExit
           ))}
         </ul>
         {finished ? (
-          <p className="text-sub text-center text-xs">
-            {session.error ?? "모두 끝나면 결과 화면으로 넘어가요"}
-          </p>
+          <div className="flex flex-col items-center gap-2">
+            <p className="text-sub text-center text-xs">
+              {session.error ??
+                (session.resultReady
+                  ? "곧 결과 화면으로 넘어가요"
+                  : "모두 끝나면 결과 화면으로 넘어가요")}
+            </p>
+            {/* 아직 결과가 없으면(다른 사람이 끝나야 함) 기다리지 않고 나갈 수 있게 한다. */}
+            {!session.resultReady ? (
+              <button
+                type="button"
+                onClick={onExit}
+                className="bg-primary rounded-full px-4 py-2 text-xs font-bold text-white"
+              >
+                나가기
+              </button>
+            ) : null}
+          </div>
         ) : null}
       </div>
     </div>
