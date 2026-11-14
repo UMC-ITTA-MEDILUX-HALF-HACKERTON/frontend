@@ -3,7 +3,7 @@ import { mockRoomApi } from "@features/room/mocks/room.mock";
 import {
   candidateBoardSchema,
   createRoomResultSchema,
-  gameBoardSchema,
+  gameResultSchema,
   joinRoomResultSchema,
   roomDetailSchema,
 } from "@features/room/schemas/room.schema";
@@ -21,7 +21,12 @@ import type {
   Room,
   VoteInput,
 } from "@features/room/types/room.types";
-import { toArrivalRequest, toCreateRoomRequest, toRoom } from "@features/room/api/room.mapper";
+import {
+  toArrivalRequest,
+  toCreateRoomRequest,
+  toGameBoard,
+  toRoom,
+} from "@features/room/api/room.mapper";
 import { apiFetch } from "@lib/api/client";
 import { ApiError } from "@lib/api/error";
 
@@ -114,18 +119,24 @@ export async function decideCandidate(roomId: string, input: DecisionInput): Pro
   await apiFetch(`${room(roomId)}/decision`, { method: "PATCH", body: input });
 }
 
-// P1 게임 점수 제출
-// TODO(백엔드 DTO 확정 후): 요청 본문(score)과 이미 점수를 낸 경우의 오류 코드를 확인한다.
+// P1 방장이 게임 시작. 이 순간의 참가자가 지각자 팀과 도착자 팀으로 고정된다.
+export async function startGame(roomId: string): Promise<void> {
+  if (USE_MOCK) return mockRoomApi.startGame(roomId);
+  await apiFetch(`${room(roomId)}/game/start`, { method: "POST" });
+}
+
+// P1 게임 점수 제출 (한 번만). 응답은 제출 후 결과 전체지만 화면은 결과를 다시 받아 오므로 쓰지 않는다.
 export async function submitGameScore(roomId: string, input: GameScoreInput): Promise<void> {
   if (USE_MOCK) return mockRoomApi.submitGameScore(roomId, input);
   await apiFetch(`${room(roomId)}/game/scores`, { method: "POST", body: input });
 }
 
-// P1 점수 비교, 승패, 지각비 결과 조회
-// TODO(백엔드 DTO 확정 후): 응답이 GameBoard 와 다르면 여기서 바꿔 준다.
+// P1 팀 평균 비교, 승패, 지각비 결과 조회
 export function getGameResult(roomId: string, signal?: AbortSignal): Promise<GameBoard> {
   if (USE_MOCK) return mockRoomApi.getGameBoard(roomId);
-  return apiFetch(`${room(roomId)}/game/result`, { schema: gameBoardSchema, signal });
+  return apiFetch(`${room(roomId)}/game/result`, { schema: gameResultSchema, signal }).then(
+    toGameBoard,
+  );
 }
 
 // 투표하지 않은 사람 "콕 찌르기". 명세에 없는 기능이라 mock 에서만 동작하고 실제 연동은 백엔드 확인 후 정한다.

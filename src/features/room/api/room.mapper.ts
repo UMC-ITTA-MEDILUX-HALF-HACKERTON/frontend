@@ -1,6 +1,10 @@
+import type { z } from "zod";
+
+import type { gameResultSchema } from "@features/room/schemas/room.schema";
 import type {
   ConfirmArrivalInput,
   CreateRoomInput,
+  GameBoard,
   Member,
   Room,
 } from "@features/room/types/room.types";
@@ -108,4 +112,10 @@ export function toRoom(dto: RoomDetailDto): Room {
     // 최종 후보 확정은 투표(poll) 연동 단계에서 채운다.
     confirmedCandidateId: null,
   };
+}
+
+// 백엔드 게임 결과 -> 화면 모델. 필드 이름만 다르다 (result -> outcome).
+export function toGameBoard(dto: z.infer<typeof gameResultSchema>): GameBoard {
+  const { result, ...rest } = dto;
+  return { ...rest, outcome: result };
 }

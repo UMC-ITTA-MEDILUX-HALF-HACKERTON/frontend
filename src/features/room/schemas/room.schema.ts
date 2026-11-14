@@ -43,20 +43,38 @@ export const candidateBoardSchema = z.object({
   confirmedCandidateId: z.string().nullable(),
 });
 
-export const gameBoardSchema = z.object({
-  lateMemberId: z.string().nullable(),
-  scores: z.array(z.object({ memberId: z.string(), score: z.number() })),
-  arrivedCount: z.number(),
-  arrivedScores: z.array(z.number()),
-  arrivedAverage: z.number().nullable(),
-  lateScore: z.number().nullable(),
-  outcome: z.enum(["WIN", "LOSE", "DRAW"]).nullable(),
-  fee: z.number().nullable(),
-  baseFee: z.number(),
-});
-
 // 백엔드 id 는 숫자(Long)이다. 화면은 문자열로 쓰므로 문자열로 바꿔 받는다.
 const idSchema = z.union([z.string(), z.number()]).transform(String);
+
+// 백엔드 게임 결과 (GameResultResponse). 화면 모델(GameBoard)로는 room.mapper 의 toGameBoard 가 바꾼다.
+export const gameResultSchema = z.object({
+  status: z.enum(["NOT_STARTED", "PLAYING", "FINISHED"]),
+  lateAverage: z.number().nullable(),
+  onTimeAverage: z.number().nullable(),
+  lateSubmittedCount: z.number(),
+  lateTotalCount: z.number(),
+  onTimeSubmittedCount: z.number(),
+  onTimeTotalCount: z.number(),
+  result: z.enum(["WIN", "LOSE", "DRAW", "PENDING"]),
+  penaltyPerPerson: z.number(),
+  lateMembers: z.array(
+    z.object({
+      memberId: idSchema,
+      nickname: z.string(),
+      lateMinutes: z.number().nullable(),
+      score: z.number().nullable(),
+      penalty: z.number(),
+    }),
+  ),
+  scores: z.array(
+    z.object({
+      memberId: idSchema,
+      nickname: z.string(),
+      team: z.enum(["LATE", "ON_TIME"]),
+      score: z.number(),
+    }),
+  ),
+});
 
 export const createRoomResultSchema = z.object({
   roomId: idSchema,

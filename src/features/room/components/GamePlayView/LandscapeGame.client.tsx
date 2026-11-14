@@ -94,8 +94,8 @@ export function LandscapeGame({ session, onExit }: { session: GameSession; onExi
         }
         bar={{ current: liveScore, target }}
         summary={
-          board.arrivedAverage !== null
-            ? { label: "실시간 점수", value: `평균 ${padScore(board.arrivedAverage)}` }
+          board.onTimeAverage !== null
+            ? { label: "실시간 점수", value: `평균 ${padScore(board.onTimeAverage)}` }
             : { label: "실시간 점수", value: `${completedCount}/${totalCount} 완료` }
         }
         rows={rows}

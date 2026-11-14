@@ -16,7 +16,7 @@ import type {
   Room,
   VoteInput,
 } from "@features/room/types/room.types";
-import { buildGameBoard } from "@features/room/utils/game";
+import { buildGameBoard, splitTeams, type MockGame } from "@features/room/utils/game";
 import { combineDateTime } from "@features/room/utils/time";
 import { getMyMemberId, setMyMemberId } from "@features/room/utils/me";
 
@@ -31,13 +31,13 @@ interface Db {
   candidates: Record<string, StoredCandidate[]>;
   // roomId -> memberId -> candidateId
   votes: Record<string, Record<string, string>>;
-  // roomId -> memberId -> 게임 점수
-  scores: Record<string, Record<string, number>>;
+  // roomId -> 한 판의 상태 (시작하기 전에는 없다)
+  games: Record<string, MockGame>;
   seq: number;
 }
 
 // 데이터 모양이 바뀌면 버전을 올려서 예전에 저장된 데모 데이터를 버린다.
-const DB_KEY = "mock-room-db-v4";
+const DB_KEY = "mock-room-db-v5";
 // 약속 12분 34초 전(현황 탭 "약속 전")과 약속 6분 12초 후(현황 탭 "약속 시간 지남") 데모 모임
 export const DEMO_ROOM_ID = "demo";
 export const DEMO_LATE_ROOM_ID = "demo-late";
@@ -120,8 +120,8 @@ function seed(): Db {
       [DEMO_ROOM_ID]: { m1: "c1", m2: "c1", m3: "c2" },
       [DEMO_LATE_ROOM_ID]: { m1: "c1", m2: "c1", m3: "c2" },
     },
-    // 약속 후 모임: 도착한 3명은 이미 게임을 했고(평균 200), 지각자 철수가 도전할 차례다.
-    scores: { [DEMO_LATE_ROOM_ID]: { m1: 250, m2: 150, m4: 200 } },
+    // 약속 후 모임은 아직 게임을 시작하지 않았다. 주최자(민지)가 시작한다.
+    games: {},
     seq: 10,
   };
 }
@@ -350,11 +350,28 @@ export const mockRoomApi = {
     return withDelay(() => {
       const db = load();
       const room = findRoom(db, roomId);
-      const scores = Object.entries(db.scores?.[roomId] ?? {}).map(([memberId, score]) => ({
-        memberId,
-        score,
-      }));
-      return buildGameBoard(room, scores);
+      return buildGameBoard(room, db.games?.[roomId] ?? null);
+    });
+  },
+
+  startGame(roomId: string): Promise<void> {
+    return withDelay(() => {
+      const db = load();
+      const room = findRoom(db, roomId);
+      const me = room.members.find((m) => m.id === getMyMemberId(roomId));
+      if (!me?.isHost) throw new ApiError("방장만 할 수 있어요.", 403, null, "FORBIDDEN");
+      if (Date.now() < new Date(room.appointmentAt).getTime()) {
+        throw new ApiError("약속 시각이 지난 뒤에 시작할 수 있어요.", 400, null, "INVALID_INPUT");
+      }
+      const teams = splitTeams(room);
+      if (teams.lateIds.length === 0) {
+        throw new ApiError("지각자가 없어서 시작할 수 없어요.", 400, null, "INVALID_INPUT");
+      }
+      if ((db.games ??= {})[roomId]) {
+        throw new ApiError("이미 게임이 있어요.", 409, null, "DUPLICATE");
+      }
+      db.games[roomId] = { ...teams, scores: {}, finished: false };
+      save(db);
     });
   },
 
@@ -366,14 +383,23 @@ export const mockRoomApi = {
       if (!me || !room.members.some((m) => m.id === me)) {
         throw new ApiError("인증이 필요합니다.", 401, null, "UNAUTHORIZED");
       }
-      if (!Number.isInteger(input.score) || input.score < 0) {
+      const game = db.games?.[roomId];
+      if (!game || game.finished) {
+        throw new ApiError("진행 중인 게임이 없어요.", 400, null, "INVALID_INPUT");
+      }
+      if (!game.lateIds.includes(me) && !game.onTimeIds.includes(me)) {
+        throw new ApiError("이번 게임 참가자가 아니에요.", 403, null, "FORBIDDEN");
+      }
+      if (!Number.isInteger(input.score) || input.score < 0 || input.score > 100_000) {
         throw new ApiError("점수가 올바르지 않아요.", 400, null, "INVALID_INPUT");
       }
-      const scores = ((db.scores ??= {})[roomId] ??= {});
-      if (scores[me] !== undefined) {
+      if (game.scores[me] !== undefined) {
         throw new ApiError("이미 점수를 냈어요.", 409, null, "DUPLICATE");
       }
-      scores[me] = input.score;
+      game.scores[me] = input.score;
+      // 참가자 전원이 점수를 내면 끝난다.
+      game.finished =
+        Object.keys(game.scores).length >= game.lateIds.length + game.onTimeIds.length;
       save(db);
     });
   },
