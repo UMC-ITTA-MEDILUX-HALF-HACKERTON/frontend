@@ -14,5 +14,6 @@ export const queryKeys = createQueryKeyStore({
     byCode: (code: string) => [code],
     candidates: (roomId: string) => [roomId],
     gameResult: (roomId: string) => [roomId],
+    locations: (roomId: string) => [roomId],
   },
 });

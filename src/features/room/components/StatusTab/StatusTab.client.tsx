@@ -10,6 +10,7 @@ import { btn } from "@common/utils/button-class";
 import { StatusChip } from "@common/components/StatusChip";
 import { useNow } from "@common/hooks/useNow";
 import { ArrivalSheet } from "@features/room/components/ArrivalSheet/ArrivalSheet.client";
+import type { GpsTracker } from "@features/map/hooks/useGpsTracker";
 import { MapSlot } from "@features/room/components/MapSlot/MapSlot";
 import type { Member, Room } from "@features/room/types/room.types";
 import {
@@ -20,7 +21,15 @@ import {
 } from "@features/room/utils/time";
 
 // S-002 모임 보드 현황 탭. 약속 전에는 남은 시간과 장소 근처 인원, 약속 시각이 지나면 지각 시간과 도착 인원을 보여 준다.
-export function StatusTab({ room, meId }: { room: Room; meId: string | null }) {
+export function StatusTab({
+  room,
+  meId,
+  tracker = null,
+}: {
+  room: Room;
+  meId: string | null;
+  tracker?: GpsTracker | null;
+}) {
   const now = useNow(1000);
   const [arrivalOpen, setArrivalOpen] = useState(false);
 
@@ -72,7 +81,7 @@ export function StatusTab({ room, meId }: { room: Room; meId: string | null }) {
         </span>
       </section>
 
-      {!after ? <MapSlot room={room} /> : null}
+      {!after ? <MapSlot room={room} meId={meId} tracker={tracker} /> : null}
 
       <section aria-label="참가자 현황">
         <div className="mb-2 flex items-center justify-between">
@@ -160,6 +169,16 @@ function MemberRow({
 }) {
   const late = lateMinutes(appointmentAt, new Date(now).toISOString());
 
+  // 위치 상태 문구 (POL-GPS-001). 도착은 주최자 확인으로만 정하고, GPS 상태와 따로 보여 준다.
+  const gps = member.gps;
+  const stale = gps?.state === "STALE";
+  const distanceText =
+    member.distanceM !== null
+      ? stale
+        ? `오래된 위치 · ${gps?.updatedAt ? formatClock(new Date(gps.updatedAt).toISOString()) : "-"} 기준`
+        : `직선거리 ${formatDistance(member.distanceM)}`
+      : null;
+
   let pill: React.ReactNode;
   let sub: string | null = null;
   if (member.status === "ARRIVED") {
@@ -167,20 +186,29 @@ function MemberRow({
     sub = member.arrivedAt ? `${formatClock(member.arrivedAt)} 도착` : null;
   } else if (after) {
     pill = <StatusChip status="late">{late}분 늦는 중</StatusChip>;
-    sub = member.distanceM !== null ? `직선거리 ${formatDistance(member.distanceM)}` : null;
+    sub =
+      member.status === "NEARBY"
+        ? "장소 근처 · GPS 꺼짐"
+        : member.status === "GPS_OFF"
+          ? "위치 미공유"
+          : distanceText;
   } else if (member.status === "NEARBY") {
     pill = (
       <StatusChip status="near" dot>
         장소 근처
       </StatusChip>
     );
+    sub = "GPS 꺼짐";
   } else if (member.status === "GPS_OFF") {
-    pill = <StatusChip status="locationOff">위치 꺼짐</StatusChip>;
+    pill = <StatusChip status="locationOff">위치 미공유</StatusChip>;
+  } else if (stale) {
+    pill = <StatusChip status="locationOff">오래된 위치</StatusChip>;
+    sub = distanceText;
   } else {
     pill = <StatusChip status="moving">이동 중</StatusChip>;
-    sub = member.distanceM !== null ? `직선거리 ${formatDistance(member.distanceM)}` : null;
+    sub = distanceText;
   }
-  if (!after && member.isHost) sub = "주최자";
+  if (!after && member.isHost) sub = sub ? `주최자 · ${sub}` : "주최자";
 
   return (
     <li className="flex items-center gap-3 py-3">

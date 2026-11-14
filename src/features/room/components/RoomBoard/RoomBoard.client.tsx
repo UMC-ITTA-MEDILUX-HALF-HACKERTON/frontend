@@ -3,7 +3,11 @@
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
+import { useNow } from "@common/hooks/useNow";
 import { cn } from "@common/utils/cn";
+import { useGpsTracker } from "@features/map/hooks/useGpsTracker";
+import { useRoomLocations } from "@features/map/queries/useRoomLocations";
+import { mergeLocations } from "@features/map/utils/merge-locations";
 import { DecideTab } from "@features/room/components/DecideTab/DecideTab.client";
 import { MockMeSwitcher } from "@features/room/components/MockMeSwitcher/MockMeSwitcher.client";
 import { StatusTab } from "@features/room/components/StatusTab/StatusTab.client";
@@ -20,9 +24,27 @@ export function RoomBoard({ roomId }: { roomId: string }) {
   const searchParams = useSearchParams();
   const tab: Tab = searchParams.get("tab") === "decide" ? "decide" : "status";
 
-  const { data: room, isPending, isError } = useRoom(roomId);
+  const { data: baseRoom, isPending, isError } = useRoom(roomId);
   const { data: board } = useCandidates(roomId);
   const meId = useMyMemberId(roomId);
+
+  // 위치 공유 (F-002). 참가자일 때만 위치를 받고 보낸다. 실패해도 다른 화면은 그대로 동작한다.
+  const isMemberOfBase = !!baseRoom && baseRoom.members.some((m) => m.id === meId);
+  const { data: locations } = useRoomLocations(roomId, isMemberOfBase);
+  const now = useNow(5_000);
+  const tracker = useGpsTracker({
+    roomId,
+    meId: isMemberOfBase ? meId : null,
+    place:
+      baseRoom && baseRoom.placeLat !== null && baseRoom.placeLng !== null
+        ? { lat: baseRoom.placeLat, lng: baseRoom.placeLng }
+        : null,
+    appointmentAt: baseRoom?.appointmentAt ?? "",
+    serverNearOff: !!locations?.some((l) => l.memberId === meId && l.status === "NEARBY_GPS_OFF"),
+  });
+  const room = baseRoom
+    ? mergeLocations(baseRoom, locations, isMemberOfBase ? tracker.self : null, now)
+    : undefined;
 
   function selectTab(next: Tab) {
     router.replace(next === "decide" ? `${pathname}?tab=decide` : pathname, { scroll: false });
@@ -84,7 +106,7 @@ export function RoomBoard({ roomId }: { roomId: string }) {
       ) : null}
 
       {tab === "status" ? (
-        <StatusTab room={room} meId={meId} />
+        <StatusTab room={room} meId={meId} tracker={isMember ? tracker : null} />
       ) : (
         <DecideTab room={room} meId={meId} />
       )}

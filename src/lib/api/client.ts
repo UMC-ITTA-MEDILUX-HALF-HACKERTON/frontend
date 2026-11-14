@@ -18,6 +18,11 @@ interface ApiFetchOptions<T> {
   // 이 요청에 쓸 참가자 토큰. 참가자 토큰은 모임마다 다르므로 모임 안의 요청은 그 모임의 토큰을 넘긴다.
   // 넘기지 않으면 저장된 기본 토큰(participant-token.ts)을 쓴다.
   token?: string | null;
+  // 이 요청에만 더 붙일 헤더 (예: 위치 API 의 X-Member-Token)
+  headers?: Record<string, string>;
+  // true 이면 공통 응답 래퍼({ success, data }) 없이 데이터만 오는 응답도 받는다.
+  // TODO(백엔드와 확인): 위치 API 가 ApiResponse 로 감싸지면 이 옵션을 지운다.
+  allowBareData?: boolean;
 }
 
 const envelopeSchema = z.object({
@@ -37,8 +42,9 @@ function buildInit(options: {
   body?: unknown;
   signal?: AbortSignal;
   token?: string | null;
+  headers?: Record<string, string>;
 }): RequestInit {
-  const headers: Record<string, string> = { Accept: "application/json" };
+  const headers: Record<string, string> = { Accept: "application/json", ...options.headers };
   if (options.body !== undefined) headers["Content-Type"] = "application/json";
   const token = options.token === undefined ? getParticipantToken() : options.token;
   if (token) headers[PARTICIPANT_TOKEN_HEADER] = token;
@@ -67,10 +73,13 @@ export async function apiFetch<T = unknown>(
   const baseUrl = getBaseUrl();
   if (!baseUrl) throw new ApiError("NEXT_PUBLIC_API_BASE_URL 이 설정되지 않았습니다.", 0);
 
-  const { method = "GET", body, schema, signal, token } = options;
+  const { method = "GET", body, schema, signal, token, headers, allowBareData } = options;
   let response: Response;
   try {
-    response = await fetch(`${baseUrl}${path}`, buildInit({ method, body, signal, token }));
+    response = await fetch(
+      `${baseUrl}${path}`,
+      buildInit({ method, body, signal, token, headers }),
+    );
   } catch (error) {
     if (error instanceof DOMException && error.name === "AbortError") throw error;
     throw new ApiError("서버에 연결하지 못했습니다.", 0);
@@ -92,9 +101,9 @@ export async function apiFetch<T = unknown>(
 
   // 본문이 없는 성공 응답(204 등)은 데이터가 없는 것으로 본다.
   if (payload === null) return undefined as T;
-  if (!envelope) throw new ApiError("응답 형식이 올바르지 않습니다.", 0, payload);
+  if (!envelope && !allowBareData) throw new ApiError("응답 형식이 올바르지 않습니다.", 0, payload);
 
-  const data = envelope.data;
+  const data = envelope ? envelope.data : payload;
   if (!schema) return data as T;
 
   const parsed = schema.safeParse(data);

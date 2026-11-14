@@ -1,6 +1,8 @@
 // 화면이 쓰는 모임 도메인 모델. 백엔드 DTO 가 확정되면 api 계층에서 이 모양으로 바꿔 준다.
 // TODO(백엔드 DTO 확정 후): 실제 응답 필드에 맞춰 schemas/room.schema.ts 를 고친다.
 
+import type { MemberGps } from "@features/map/types/location.types";
+
 export type Dto = Record<string, unknown>;
 
 // 위치 상태. 장소 100m 안이면 NEARBY, 이동 중이면 MOVING, 위치 공유를 껐으면 GPS_OFF, 도착이 확인되면 ARRIVED.
@@ -15,6 +17,8 @@ export interface Member {
   distanceM: number | null;
   // 주최자가 확인한 실제 도착 시각(ISO). 도착 전이면 null.
   arrivedAt: string | null;
+  // 위치 공유 상세 (공유 중, 장소 근처 GPS 꺼짐, 미공유, 오래된 위치). 위치 조회 전이면 없다.
+  gps?: MemberGps;
 }
 
 export interface Room {
@@ -110,9 +114,6 @@ export interface ConfirmArrivalInput {
   arrived: boolean;
   arrivedAt: string | null;
 }
-
-// 위치 갱신은 화면이 아직 쓰지 않는다. 필드는 DTO 확정 후 정한다.
-export type UpdateLocationInput = Dto;
 
 // 지각비 게임 (T-Rex). 지각자 1명이 도착자 전원의 평균 점수와 겨룬다.
 export type GameOutcome = "WIN" | "LOSE" | "DRAW";
