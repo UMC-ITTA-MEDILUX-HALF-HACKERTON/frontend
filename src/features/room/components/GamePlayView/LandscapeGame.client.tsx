@@ -203,9 +203,24 @@ export function LandscapeGame({ session, onExit }: { session: GameSession; onExi
         ) : null}
       </div>
       {phase === "over" ? (
-        <p className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-[rgba(21,26,36,0.85)] px-3 py-1.5 text-[11.5px] font-bold whitespace-nowrap text-white">
-          {session.error ?? "모두 끝나면 결과 화면으로 넘어가요"}
-        </p>
+        <div className="absolute bottom-4 left-1/2 z-10 flex -translate-x-1/2 items-center gap-2">
+          <p className="rounded-full bg-[rgba(21,26,36,0.85)] px-3 py-1.5 text-[11.5px] font-bold whitespace-nowrap text-white">
+            {session.error ??
+              (session.resultReady
+                ? "곧 결과 화면으로 넘어가요"
+                : "모두 끝나면 결과 화면으로 넘어가요")}
+          </p>
+          {/* 아직 결과가 없으면(다른 사람이 끝나야 함) 기다리지 않고 나갈 수 있게 한다. 결과가 나오면 규칙 화면에 결과 보기가 생긴다. */}
+          {!session.resultReady ? (
+            <button
+              type="button"
+              onClick={onExit}
+              className="rounded-full bg-[#2f6bff] px-3 py-1.5 text-[11.5px] font-bold whitespace-nowrap text-white"
+            >
+              나가기
+            </button>
+          ) : null}
+        </div>
       ) : null}
 
       <GameHelpModal open={helpOpen} onClose={() => setHelpOpen(false)} baseFee={room.baseFee} />
