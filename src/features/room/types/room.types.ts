@@ -22,6 +22,10 @@ export interface Room {
   code: string;
   name: string;
   place: string;
+  // 최초 약속 장소 좌표. 지도 중심과 직선 거리·100m 판정의 기준이다. 장소명만으로는 판정하지 않는다.
+  // TODO(백엔드 DTO 확정 후): 필드 이름을 맞춘다. 좌표를 아직 받지 못하면 null 이고 지도 대신 안내를 보여 준다.
+  placeLat: number | null;
+  placeLng: number | null;
   // 약속 시각(ISO)
   appointmentAt: string;
   lateGameEnabled: boolean;

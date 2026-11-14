@@ -47,6 +47,8 @@ const room: Room = {
   code: "c",
   name: "모임",
   place: "장소",
+  placeLat: null,
+  placeLng: null,
   appointmentAt: new Date().toISOString(),
   lateGameEnabled: true,
   baseFee: 3000,
@@ -163,5 +165,22 @@ describe("padScore", () => {
 
   it("음수는 0으로 본다", () => {
     expect(padScore(-5)).toBe("00000");
+  });
+});
+
+describe("도착한 사람이 없는 모임 (방금 만든 모임)", () => {
+  const nobody: Room = {
+    ...room,
+    members: [member("m1", "민지", "NEARBY"), member("m2", "지수", "MOVING")],
+  };
+
+  it("비교할 도착자 평균이 없으므로 지각자도 게임을 시작할 수 없다", () => {
+    const board = buildGameBoard(nobody, []);
+    expect(board.arrivedCount).toBe(0);
+    expect(gameTurn(nobody, board, "m1")).toBe("WAIT_ARRIVED");
+  });
+
+  it("도착자가 없으면 점수를 내도 결과가 정해지지 않는다 (그래서 시작 자체를 막는다)", () => {
+    expect(buildGameBoard(nobody, [{ memberId: "m1", score: 100 }]).outcome).toBeNull();
   });
 });

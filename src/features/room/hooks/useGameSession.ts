@@ -39,6 +39,8 @@ export interface GameSession {
   setLiveScore: (score: number) => void;
   // 내 판이 끝나 점수를 보냈는지
   finished: boolean;
+  // 지각자가 점수를 내서 승패와 지각비가 정해졌는지. true 이면 곧 결과 화면으로 넘어간다.
+  resultReady: boolean;
   error: string | null;
   finishGame: (score: number) => void;
   // 규칙 화면으로 나간다
@@ -112,6 +114,7 @@ export function useGameSession(roomId: string): GameSession | null {
     liveScore,
     setLiveScore,
     finished,
+    resultReady: outcomeKnown,
     error,
     finishGame: (score: number) => {
       setLiveScore(score);

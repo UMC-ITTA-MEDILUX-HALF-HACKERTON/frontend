@@ -59,7 +59,7 @@ export function buildGameBoard(room: Room, scores: GameScore[]): GameBoard {
 // 지금 "나"가 게임에서 할 수 있는 것.
 //   PLAY          내 차례 (도착자는 언제든, 지각자는 도착자가 모두 끝난 뒤)
 //   DONE          이미 점수를 냈다
-//   WAIT_ARRIVED  지각자인데 아직 점수를 내지 않은 도착자가 있다
+//   WAIT_ARRIVED  지각자인데 비교할 도착자가 없거나, 아직 점수를 내지 않은 도착자가 있다
 //   SPECTATOR     지각자도 도착자도 아니다 (도착하지 않았지만 이번 지각자로 뽑히지 않았다)
 //   NO_GAME       모두 도착해서 게임이 없다
 //   NOT_MEMBER    이 모임의 참가자가 아니다
@@ -71,7 +71,9 @@ export function gameTurn(room: Room, board: GameBoard, meId: string | null): Gam
   if (board.lateMemberId === null) return "NO_GAME";
   if (board.scores.some((s) => s.memberId === me.id)) return "DONE";
   if (me.id === board.lateMemberId) {
-    return board.arrivedScores.length < board.arrivedCount ? "WAIT_ARRIVED" : "PLAY";
+    // 도착자가 한 명도 없으면 비교할 평균이 없어 결과가 정해지지 않으므로 시작하지 못하게 한다.
+    const comparable = board.arrivedCount > 0 && board.arrivedScores.length >= board.arrivedCount;
+    return comparable ? "PLAY" : "WAIT_ARRIVED";
   }
   return me.status === "ARRIVED" ? "PLAY" : "SPECTATOR";
 }
