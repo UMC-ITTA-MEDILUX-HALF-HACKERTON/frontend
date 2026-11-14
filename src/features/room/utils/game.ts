@@ -100,19 +100,23 @@ export function buildGameBoard(room: Room, game: MockGame | null): GameBoard {
 }
 
 // 지금 "나"가 게임에서 할 수 있는 것.
-//   START       방장이 게임을 시작할 수 있다 (시작 전, 지각자가 있을 때)
-//   WAIT_START  방장이 시작하기를 기다린다
+//   START         방장이 게임을 시작할 수 있다 (시작 전, 지각자와 도착자가 모두 있을 때)
+//   WAIT_ARRIVED  시작 전인데 도착한 사람이 없다. 도착자 팀이 비면 결과가 영영 정해지지 않고, 서버는 방마다
+//                 게임을 한 번만 허용해서 다시 할 수도 없으므로 시작하지 못하게 한다.
+//   WAIT_START    방장이 시작하기를 기다린다
 //   PLAY        점수를 낼 차례다 (진행 중이고 아직 내지 않았다)
 //   DONE        이미 점수를 냈거나 게임이 끝났다
 //   NO_GAME     지각자가 없어서 게임이 없다
 //   NOT_MEMBER  이 모임의 참가자가 아니다
-export type GameTurn = "START" | "WAIT_START" | "PLAY" | "DONE" | "NO_GAME" | "NOT_MEMBER";
+export type GameTurn =
+  "START" | "WAIT_ARRIVED" | "WAIT_START" | "PLAY" | "DONE" | "NO_GAME" | "NOT_MEMBER";
 
 export function gameTurn(room: Room, board: GameBoard, meId: string | null): GameTurn {
   const me = room.members.find((m) => m.id === meId);
   if (!me) return "NOT_MEMBER";
   if (board.status === "NOT_STARTED") {
     if (room.members.every((m) => m.status === "ARRIVED")) return "NO_GAME";
+    if (room.members.every((m) => m.status !== "ARRIVED")) return "WAIT_ARRIVED";
     return me.isHost ? "START" : "WAIT_START";
   }
   if (board.status === "FINISHED") return "DONE";

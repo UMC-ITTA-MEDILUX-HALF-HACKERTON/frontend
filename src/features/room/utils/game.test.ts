@@ -135,6 +135,14 @@ describe("gameTurn", () => {
     expect(gameTurn(room, notStarted, "m3")).toBe("WAIT_START");
   });
 
+  it("도착한 사람이 없으면 시작할 수 없다 (도착자 팀이 비면 결과가 정해지지 않는다)", () => {
+    const none = {
+      ...room,
+      members: room.members.map((m) => ({ ...m, status: "MOVING" as const })),
+    };
+    expect(gameTurn(none, buildGameBoard(none, null), "m1")).toBe("WAIT_ARRIVED");
+  });
+
   it("모두 도착했으면 게임이 없다", () => {
     const all = {
       ...room,

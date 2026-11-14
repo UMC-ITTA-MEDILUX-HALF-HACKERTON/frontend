@@ -136,9 +136,11 @@ export function GameIntroView({ roomId }: { roomId: string }) {
               ? board.status === "FINISHED"
                 ? "게임이 끝났어요"
                 : "이미 플레이했어요"
-              : turn === "WAIT_START"
-                ? "방장이 시작하면 할 수 있어요"
-                : "참가자만 할 수 있어요"}
+              : turn === "WAIT_ARRIVED"
+                ? "도착한 사람이 있어야 시작할 수 있어요"
+                : turn === "WAIT_START"
+                  ? "방장이 시작하면 할 수 있어요"
+                  : "참가자만 할 수 있어요"}
           </Button>
         )}
         {board.status === "FINISHED" || board.outcome !== "PENDING" ? (
