@@ -87,7 +87,7 @@ export function DecideTab({ room, meId }: { room: Room; meId: string | null }) {
               <div className="mt-3 flex gap-2">
                 <Button
                   variant="line"
-                  className={btn({ size: "md", full: true })}
+                  className={btn({ size: "md", full: true, tone: "line" })}
                   onClick={() => setSheetOpen(true)}
                 >
                   + 후보 추가

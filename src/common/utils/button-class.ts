@@ -13,6 +13,9 @@ const TONE = {
   kakao: "bg-yellow! text-ink! shadow-none! hover:bg-yellow!",
   dark: "bg-ink! text-white! shadow-none! hover:bg-ink!",
   fill: "bg-fill! text-ink! shadow-none!",
+  // PR #8 의 Button 은 기본으로 border-transparent 를 주고 Line 변형이 border-line 을 덧붙이는데,
+  // 두 클래스가 부딪혀 테두리가 보이지 않는다. variant="line" 과 함께 쓰면 테두리 색을 확실히 정한다.
+  line: "border-line!",
 } as const;
 
 export function btn(options: {

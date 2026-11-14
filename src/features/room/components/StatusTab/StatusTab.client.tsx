@@ -83,7 +83,7 @@ export function StatusTab({ room, meId }: { room: Room; meId: string | null }) {
           {after && isHost ? (
             <Button
               variant="line"
-              className={btn({ size: "sm" })}
+              className={btn({ size: "sm", tone: "line" })}
               onClick={() => setArrivalOpen(true)}
             >
               도착 관리

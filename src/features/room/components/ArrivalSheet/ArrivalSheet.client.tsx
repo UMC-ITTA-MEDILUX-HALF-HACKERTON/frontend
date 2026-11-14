@@ -167,7 +167,7 @@ function ArrivalForm({ room, onClose }: { room: Room; onClose: () => void }) {
               ) : (
                 <Button
                   variant="line"
-                  className={btn({ size: "sm" })}
+                  className={btn({ size: "sm", tone: "line" })}
                   onClick={() => setEditing(member.id)}
                 >
                   {draft.arrived ? "시각 수정" : "시각 입력"}
