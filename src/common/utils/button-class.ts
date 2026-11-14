@@ -1,0 +1,30 @@
+import { cn } from "./cn";
+
+// PR #8 의 Button(variant: primary, soft, line)에 크기와 색을 덧씌우는 클래스.
+// cn 은 단순히 이어 붙이기만 하므로, 기본 클래스를 확실히 이기도록 Tailwind 의 중요 표시(!)를 쓴다.
+//   <Button className={btn({ size: "lg", full: true })}>확인</Button>
+const SIZE = {
+  lg: "h-[52px]! rounded-2xl! px-5!", // 화면 아래의 큰 확인 버튼
+  md: "h-12! rounded-2xl! px-4!", // 디자인 시스템 기본 버튼
+  sm: "h-8! rounded-lg! px-3! text-xs!", // 목록 안의 작은 버튼
+} as const;
+
+const TONE = {
+  kakao: "bg-yellow! text-ink! shadow-none! hover:bg-yellow!",
+  dark: "bg-ink! text-white! shadow-none! hover:bg-ink!",
+  fill: "bg-fill! text-ink! shadow-none!",
+} as const;
+
+export function btn(options: {
+  size?: keyof typeof SIZE;
+  full?: boolean;
+  tone?: keyof typeof TONE;
+  className?: string;
+}): string {
+  return cn(
+    options.size ? SIZE[options.size] : undefined,
+    options.full && "w-full",
+    options.tone ? TONE[options.tone] : undefined,
+    options.className,
+  );
+}
