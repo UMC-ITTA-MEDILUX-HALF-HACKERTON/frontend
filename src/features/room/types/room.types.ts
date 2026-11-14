@@ -1,20 +1,130 @@
-// TODO(백엔드 DTO 확정 후): 아래 타입을 실제 필드로 좁히고 schemas/ 에 zod 스키마를 만든다.
-// 지금은 경로와 메서드만 확정(API 명세서)이고 요청, 응답 필드는 아직 모른다.
+// 화면이 쓰는 모임 도메인 모델. 백엔드 DTO 가 확정되면 api 계층에서 이 모양으로 바꿔 준다.
+// TODO(백엔드 DTO 확정 후): 실제 응답 필드에 맞춰 schemas/room.schema.ts 를 고친다.
+
 export type Dto = Record<string, unknown>;
 
-// 모임 생성 요청 (모임 이름, 약속 시간, 약속 장소 등으로 추정). 응답에 참여 코드와 주최자 memberId 가 온다.
-export type CreateRoomInput = Dto;
-// 입장 요청 (참여 코드 + 닉네임). 응답에 memberId 가 온다.
-export type JoinRoomInput = { code: string; nickname: string } & Dto;
-// GPS 위치 갱신 요청 (좌표). 응답에 직선 거리와 100m 판정 상태(예: NEARBY_GPS_OFF)가 온다.
+// 위치 상태. 장소 100m 안이면 NEARBY, 이동 중이면 MOVING, 위치 공유를 껐으면 GPS_OFF, 도착이 확인되면 ARRIVED.
+export type MemberStatus = "NEARBY" | "MOVING" | "GPS_OFF" | "ARRIVED";
+
+export interface Member {
+  id: string;
+  nickname: string;
+  isHost: boolean;
+  status: MemberStatus;
+  // 약속 장소까지 직선 거리(m). 모르면 null.
+  distanceM: number | null;
+  // 주최자가 확인한 실제 도착 시각(ISO). 도착 전이면 null.
+  arrivedAt: string | null;
+}
+
+export interface Room {
+  id: string;
+  code: string;
+  name: string;
+  place: string;
+  // 약속 시각(ISO)
+  appointmentAt: string;
+  lateGameEnabled: boolean;
+  baseFee: number;
+  members: Member[];
+  confirmedCandidateId: string | null;
+}
+
+export type CandidateKind = "PLACE" | "ACTIVITY";
+
+export interface Candidate {
+  id: string;
+  kind: CandidateKind;
+  name: string;
+  mapLink: string | null;
+  voteCount: number;
+}
+
+export interface CandidateBoard {
+  candidates: Candidate[];
+  memberCount: number;
+  votedCount: number;
+  // 아직 투표하지 않은 참가자 id
+  nonVoterIds: string[];
+  // 내가 투표한 후보 id. 아직이면 null.
+  myVoteCandidateId: string | null;
+  confirmedCandidateId: string | null;
+}
+
+export interface CreateRoomInput {
+  name: string;
+  place: string;
+  // "YYYY-MM-DD", "HH:mm" (브라우저 로컬 시간)
+  date: string;
+  time: string;
+  lateGameEnabled: boolean;
+  baseFee: number;
+}
+
+// 응답: 모임 id, 초대 코드, 주최자로 등록된 memberId
+export interface CreateRoomResult {
+  roomId: string;
+  code: string;
+  memberId: string;
+}
+
+export interface JoinRoomInput {
+  code: string;
+  nickname: string;
+}
+
+export interface JoinRoomResult {
+  roomId: string;
+  memberId: string;
+}
+
+export interface CreateCandidateInput {
+  kind: CandidateKind;
+  name: string;
+  mapLink?: string;
+}
+
+export interface VoteInput {
+  candidateId: string;
+}
+
+export interface DecisionInput {
+  candidateId: string;
+}
+
+// 주최자의 도착 확인. arrived 가 false 이면 도착 취소(arrivedAt 은 null).
+export interface ConfirmArrivalInput {
+  arrived: boolean;
+  arrivedAt: string | null;
+}
+
+// 위치 갱신은 화면이 아직 쓰지 않는다. 필드는 DTO 확정 후 정한다.
 export type UpdateLocationInput = Dto;
-// 도착 확인 요청 (주최자가 실제 도착 시각을 기록, 수정).
-export type ConfirmArrivalInput = Dto;
-// 장소 + 활동 후보 등록 요청.
-export type CreateCandidateInput = Dto;
-// 투표 요청 (1인 1표, 변경 가능).
-export type VoteInput = Dto;
-// 최종 후보 확정 요청 (주최자만).
-export type DecisionInput = Dto;
-// 게임(T-Rex) 점수 제출 요청.
-export type GameScoreInput = Dto;
+
+// 지각비 게임 (T-Rex). 지각자 1명이 도착자 전원의 평균 점수와 겨룬다.
+export type GameOutcome = "WIN" | "LOSE" | "DRAW";
+
+export interface GameScore {
+  memberId: string;
+  score: number;
+}
+
+export interface GameScoreInput {
+  score: number;
+}
+
+export interface GameBoard {
+  // 지각자(도착하지 않은 참가자). 모두 도착했으면 null.
+  lateMemberId: string | null;
+  scores: GameScore[];
+  arrivedCount: number;
+  // 점수를 낸 도착자들의 점수와 평균. 아직 없으면 평균은 null.
+  arrivedScores: number[];
+  arrivedAverage: number | null;
+  lateScore: number | null;
+  // 지각자가 점수를 냈을 때만 정해진다.
+  outcome: GameOutcome | null;
+  // 지각비. 승리 0원, 패배 기본 지각비 x 2, 무승부 기본 지각비.
+  fee: number | null;
+  baseFee: number;
+}

@@ -8,6 +8,7 @@ export const queryKeys = createQueryKeyStore({
   },
   room: {
     detail: (roomId: string) => [roomId],
+    byCode: (code: string) => [code],
     candidates: (roomId: string) => [roomId],
     gameResult: (roomId: string) => [roomId],
   },
