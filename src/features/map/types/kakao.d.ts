@@ -6,8 +6,20 @@ export interface KakaoLatLng {
   getLng(): number;
 }
 
+export interface KakaoLatLngBounds {
+  extend(latlng: KakaoLatLng): void;
+}
+
 export interface KakaoMap {
   setCenter(latlng: KakaoLatLng): void;
+  // 여백은 위, 오른쪽, 아래, 왼쪽(px)
+  setBounds(
+    bounds: KakaoLatLngBounds,
+    top?: number,
+    right?: number,
+    bottom?: number,
+    left?: number,
+  ): void;
   setLevel(level: number): void;
   relayout(): void;
 }
@@ -25,6 +37,7 @@ export interface KakaoCustomOverlay {
 export interface KakaoMapsNamespace {
   load(callback: () => void): void;
   LatLng: new (lat: number, lng: number) => KakaoLatLng;
+  LatLngBounds: new () => KakaoLatLngBounds;
   Map: new (container: HTMLElement, options: { center: KakaoLatLng; level?: number }) => KakaoMap;
   Marker: new (options: { position: KakaoLatLng; map?: KakaoMap }) => KakaoMarker;
   CustomOverlay: new (options: {

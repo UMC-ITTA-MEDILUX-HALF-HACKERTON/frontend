@@ -14,13 +14,11 @@ import type {
   CreateRoomInput,
   CreateRoomResult,
   DecisionInput,
-  Dto,
   GameBoard,
   GameScoreInput,
   JoinRoomInput,
   JoinRoomResult,
   Room,
-  UpdateLocationInput,
   VoteInput,
 } from "@features/room/types/room.types";
 import { toArrivalRequest, toCreateRoomRequest, toRoom } from "@features/room/api/room.mapper";
@@ -65,14 +63,7 @@ export function getRoom(roomId: string, signal?: AbortSignal): Promise<Room> {
   return apiFetch(room(roomId), { schema: roomDetailSchema, signal }).then(toRoom);
 }
 
-// P0 GPS 위치 갱신, 직선 거리, 100m 판정 (화면은 아직 쓰지 않는다)
-export function updateLocation(
-  roomId: string,
-  memberId: string,
-  input: UpdateLocationInput,
-): Promise<Dto> {
-  return apiFetch(`${member(roomId, memberId)}/location`, { method: "PATCH", body: input });
-}
+// P0 GPS 위치 갱신과 참가자 위치 조회는 features/map/api/location.api.ts 에 있다.
 
 // P0 주최자 도착 확인, 실제 도착 시각 수정
 // 백엔드에는 도착 취소가 없다 (도착 처리만 있고, 이미 도착한 사람은 시각만 고칠 수 있다).
