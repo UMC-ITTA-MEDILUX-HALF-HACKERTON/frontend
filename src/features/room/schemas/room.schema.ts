@@ -16,6 +16,9 @@ export const roomSchema = z.object({
   code: z.string(),
   name: z.string(),
   place: z.string(),
+  // 백엔드가 아직 좌표를 주지 않아도 화면이 깨지지 않게, 빠진 값은 null 로 둔다.
+  placeLat: z.number().min(-90).max(90).nullable().default(null),
+  placeLng: z.number().min(-180).max(180).nullable().default(null),
   appointmentAt: z.string(),
   lateGameEnabled: z.boolean(),
   baseFee: z.number(),

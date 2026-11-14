@@ -37,7 +37,7 @@ interface Db {
 }
 
 // 데이터 모양이 바뀌면 버전을 올려서 예전에 저장된 데모 데이터를 버린다.
-const DB_KEY = "mock-room-db-v3";
+const DB_KEY = "mock-room-db-v4";
 // 약속 12분 34초 전(현황 탭 "약속 전")과 약속 6분 12초 후(현황 탭 "약속 시간 지남") 데모 모임
 export const DEMO_ROOM_ID = "demo";
 export const DEMO_LATE_ROOM_ID = "demo-late";
@@ -98,6 +98,9 @@ function seed(): Db {
     code,
     name: "금요일 동아리 회식",
     place: "강남역 ○○포차",
+    // 강남역 부근 좌표 (데모용)
+    placeLat: 37.497952,
+    placeLng: 127.027619,
     appointmentAt: new Date(appointmentMs).toISOString(),
     lateGameEnabled: true,
     baseFee: 3000,
@@ -192,6 +195,9 @@ export const mockRoomApi = {
         code,
         name: input.name,
         place: input.place,
+        // TODO(2단계 약속 장소 선택): 모임 개설 화면에서 고른 좌표를 넣는다.
+        placeLat: null,
+        placeLng: null,
         appointmentAt,
         lateGameEnabled: input.lateGameEnabled,
         baseFee: input.baseFee,

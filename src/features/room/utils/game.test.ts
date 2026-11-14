@@ -47,6 +47,8 @@ const room: Room = {
   code: "c",
   name: "모임",
   place: "장소",
+  placeLat: null,
+  placeLng: null,
   appointmentAt: new Date().toISOString(),
   lateGameEnabled: true,
   baseFee: 3000,
