@@ -6,6 +6,11 @@ import type { GameBoard, GameOutcome, GameScore, Room } from "@features/room/typ
 //   지각자 점수 = 도착자 평균 : 무승부, 기본 지각비
 // 실제 계산은 백엔드가 하고, 이 함수는 mock 과 화면 확인에 쓴다.
 
+// 게임 화면의 점수 표기: 다섯 자리로 채운다 (예: 250 -> "00250").
+export function padScore(score: number): string {
+  return String(Math.max(0, Math.floor(score))).padStart(5, "0");
+}
+
 export function average(values: number[]): number | null {
   if (values.length === 0) return null;
   return values.reduce((sum, value) => sum + value, 0) / values.length;
