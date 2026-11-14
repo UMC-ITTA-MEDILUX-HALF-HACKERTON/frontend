@@ -71,6 +71,8 @@ export function toRoom(dto: RoomDetailDto): Room {
     code: dto.code,
     name: dto.title,
     place: dto.placeName,
+    placeLat: dto.lat,
+    placeLng: dto.lng,
     appointmentAt: dto.startAt,
     lateGameEnabled: dto.lateFee > 0,
     baseFee: dto.lateFee,

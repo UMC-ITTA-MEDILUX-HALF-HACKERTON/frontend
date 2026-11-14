@@ -80,6 +80,8 @@ describe("방 응답 변환", () => {
       id: "1",
       name: "금요일 모임",
       place: "강남역",
+      placeLat: 37.4979,
+      placeLng: 127.0276,
       appointmentAt: "2026-11-20T19:00:00",
       lateGameEnabled: true,
       baseFee: 1000,
