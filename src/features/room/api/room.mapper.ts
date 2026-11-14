@@ -1,4 +1,10 @@
-import type { CreateRoomInput, Member, Room } from "@features/room/types/room.types";
+import type {
+  ConfirmArrivalInput,
+  CreateRoomInput,
+  Member,
+  Room,
+} from "@features/room/types/room.types";
+import { toDateInput } from "@features/room/utils/time";
 
 // 백엔드 DTO 와 화면 모델 사이의 변환. 백엔드는 id 가 숫자(Long)이고 시각은 시간대 없는 LocalDateTime 이다.
 
@@ -29,6 +35,28 @@ export function toCreateRoomRequest(input: CreateRoomInput): CreateRoomRequestBo
     lateFee: input.lateGameEnabled ? input.baseFee : 0,
     nickname: input.nickname,
   };
+}
+
+// 백엔드 도착 처리 요청 (ArrivalRequest). arrivedAt 이 null 이면 서버 현재 시각으로 기록한다.
+export interface ArrivalRequestBody {
+  arrivedAt: string | null;
+}
+
+function pad(value: number): string {
+  return String(value).padStart(2, "0");
+}
+
+// ISO 시각을 시간대 없는 로컬 시각("YYYY-MM-DDTHH:mm:ss")으로 바꾼다. 백엔드 LocalDateTime 은 "Z" 가 붙은 값을 받지 못한다.
+// 올바르지 않은 값이면 null (서버가 현재 시각으로 기록한다).
+export function toLocalDateTime(iso: string): string | null {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return null;
+  const time = `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+  return `${toDateInput(date)}T${time}`;
+}
+
+export function toArrivalRequest(input: ConfirmArrivalInput): ArrivalRequestBody {
+  return { arrivedAt: input.arrivedAt ? toLocalDateTime(input.arrivedAt) : null };
 }
 
 // 백엔드 모임 상세 응답 (RoomDetailResponse)
