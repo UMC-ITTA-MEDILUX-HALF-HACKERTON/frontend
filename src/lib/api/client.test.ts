@@ -69,6 +69,42 @@ describe("apiFetch", () => {
     await expect(apiFetch("/x")).rejects.toMatchObject({ code: "INVALID", status: 200 });
   });
 
+  it("백엔드 실제 형식(errorCode, message)의 실패 응답도 code 와 message 를 담는다", async () => {
+    fetchMock.mockResolvedValue(
+      json(
+        { success: false, data: null, errorCode: "NOT_FOUND", message: "대상을 찾을 수 없습니다." },
+        404,
+      ),
+    );
+    await expect(apiFetch("/x")).rejects.toMatchObject({
+      status: 404,
+      code: "NOT_FOUND",
+      message: "대상을 찾을 수 없습니다.",
+    });
+  });
+
+  it("백엔드 실제 형식의 성공 응답에서 data 를 꺼낸다", async () => {
+    fetchMock.mockResolvedValue(
+      json({ success: true, data: "ok", errorCode: null, message: null }),
+    );
+    await expect(apiFetch("/api/health")).resolves.toBe("ok");
+  });
+
+  it("저장된 참가자 토큰이 있으면 X-Participant-Token 헤더로 보낸다", async () => {
+    vi.stubGlobal("window", { localStorage: { getItem: () => "tok-1" } });
+    fetchMock.mockResolvedValue(ok({}));
+    await apiFetch("/x");
+    const init = fetchMock.mock.calls[0][1] as RequestInit;
+    expect((init.headers as Record<string, string>)["X-Participant-Token"]).toBe("tok-1");
+  });
+
+  it("토큰이 없으면 X-Participant-Token 헤더를 보내지 않는다", async () => {
+    fetchMock.mockResolvedValue(ok({}));
+    await apiFetch("/x");
+    const init = fetchMock.mock.calls[0][1] as RequestInit;
+    expect(init.headers as Record<string, string>).not.toHaveProperty("X-Participant-Token");
+  });
+
   it("래퍼 없는 실패 응답은 상태 코드만 담은 ApiError 로 던진다", async () => {
     fetchMock.mockResolvedValue(new Response("oops", { status: 500 }));
     await expect(apiFetch("/x")).rejects.toMatchObject({ status: 500, code: null });

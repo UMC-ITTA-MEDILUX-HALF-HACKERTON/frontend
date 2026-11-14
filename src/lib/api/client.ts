@@ -1,12 +1,13 @@
 import { z } from "zod";
 
 import { ApiError } from "./error";
+import { getParticipantToken, PARTICIPANT_TOKEN_HEADER } from "./participant-token";
 
 // 백엔드 호출은 전부 이 파일의 apiFetch 를 거친다.
-// 응답 형식 (백엔드와 합의):
-//   성공 { "success": true, "data": ..., "error": null }
-//   실패 { "success": false, "error": { "code": "ROOM_NOT_FOUND", "message": "모임을 찾을 수 없습니다." } }
-// TODO(백엔드와 합의 후): 인증(쿠키 credentials 또는 Authorization 헤더)이 정해지면 buildInit 한 곳만 고친다.
+// 응답 형식은 두 가지를 모두 받는다.
+//   백엔드 코드(ApiResponse) { success, data, errorCode, message }
+//   합의 문서               { success, data, error: { code, message } }
+// 인증: 저장된 참가자 토큰이 있으면 X-Participant-Token 헤더로 보낸다.
 
 interface ApiFetchOptions<T> {
   method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
@@ -20,6 +21,8 @@ const envelopeSchema = z.object({
   success: z.boolean(),
   data: z.unknown().optional(),
   error: z.object({ code: z.string(), message: z.string() }).nullable().optional(),
+  errorCode: z.string().nullable().optional(),
+  message: z.string().nullable().optional(),
 });
 
 function getBaseUrl(): string {
@@ -29,6 +32,8 @@ function getBaseUrl(): string {
 function buildInit(options: { method: string; body?: unknown; signal?: AbortSignal }): RequestInit {
   const headers: Record<string, string> = { Accept: "application/json" };
   if (options.body !== undefined) headers["Content-Type"] = "application/json";
+  const token = getParticipantToken();
+  if (token) headers[PARTICIPANT_TOKEN_HEADER] = token;
   return {
     method: options.method,
     headers,
@@ -70,10 +75,10 @@ export async function apiFetch<T = unknown>(
   // 실패: HTTP 상태가 실패이거나 success 가 false 이면 백엔드가 준 code 와 message 를 그대로 쓴다.
   if (!response.ok || (envelope && !envelope.success)) {
     throw new ApiError(
-      envelope?.error?.message ?? `요청에 실패했습니다. (${response.status})`,
+      envelope?.error?.message ?? envelope?.message ?? `요청에 실패했습니다. (${response.status})`,
       response.status,
       payload,
-      envelope?.error?.code,
+      envelope?.error?.code ?? envelope?.errorCode,
     );
   }
 
