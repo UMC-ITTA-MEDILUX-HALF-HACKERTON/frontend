@@ -59,13 +59,19 @@ export interface CreateRoomInput {
   time: string;
   lateGameEnabled: boolean;
   baseFee: number;
+  // 방장 닉네임
+  nickname: string;
+  // 약속 장소 좌표 (장소 검색으로 고른 값)
+  lat: number;
+  lng: number;
 }
 
-// 응답: 모임 id, 초대 코드, 주최자로 등록된 memberId
+// 응답: 모임 id, 초대 코드, 주최자로 등록된 memberId, 이후 요청에 쓸 참가자 토큰(mock 에는 없다)
 export interface CreateRoomResult {
   roomId: string;
   code: string;
   memberId: string;
+  token?: string;
 }
 
 export interface JoinRoomInput {
@@ -76,6 +82,7 @@ export interface JoinRoomInput {
 export interface JoinRoomResult {
   roomId: string;
   memberId: string;
+  token?: string;
 }
 
 export interface CreateCandidateInput {

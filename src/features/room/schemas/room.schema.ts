@@ -52,18 +52,51 @@ export const gameBoardSchema = z.object({
   baseFee: z.number(),
 });
 
+// 백엔드 id 는 숫자(Long)이다. 화면은 문자열로 쓰므로 문자열로 바꿔 받는다.
+const idSchema = z.union([z.string(), z.number()]).transform(String);
+
 export const createRoomResultSchema = z.object({
-  roomId: z.string(),
+  roomId: idSchema,
   code: z.string(),
-  memberId: z.string(),
+  memberId: idSchema,
+  token: z.string().optional(),
 });
 
 export const joinRoomResultSchema = z.object({
-  roomId: z.string(),
-  memberId: z.string(),
+  roomId: idSchema,
+  memberId: idSchema,
+  token: z.string().optional(),
+});
+
+// 백엔드 모임 상세 (RoomDetailResponse). 화면 모델(roomSchema)로는 room.mapper 의 toRoom 이 바꾼다.
+export const roomDetailSchema = z.object({
+  roomId: idSchema,
+  code: z.string(),
+  title: z.string(),
+  placeName: z.string(),
+  lat: z.number(),
+  lng: z.number(),
+  startAt: z.string(),
+  lateFee: z.number(),
+  createdAt: z.string(),
+  members: z.array(
+    z.object({
+      memberId: idSchema,
+      nickname: z.string(),
+      role: z.string(),
+      arrivedAt: z.string().nullable(),
+      lateMinutes: z.number().nullable(),
+    }),
+  ),
 });
 
 // 입력 검증 (폼)
+export const nicknameSchema = z
+  .string()
+  .trim()
+  .min(1, "닉네임을 입력해 주세요.")
+  .max(10, "10자 이하로 입력해 주세요.");
+
 export const createRoomInputSchema = z.object({
   name: z
     .string()
@@ -75,17 +108,15 @@ export const createRoomInputSchema = z.object({
     .trim()
     .min(1, "약속 장소를 입력해 주세요.")
     .max(50, "50자 이하로 입력해 주세요."),
+  // 장소 검색으로 고른 좌표. 검색 없이 직접 입력만 하면 없다.
+  lat: z.number({ error: "검색 결과에서 장소를 선택해 주세요." }),
+  lng: z.number({ error: "검색 결과에서 장소를 선택해 주세요." }),
+  nickname: nicknameSchema,
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "날짜를 선택해 주세요."),
   time: z.string().regex(/^\d{2}:\d{2}$/, "시간을 선택해 주세요."),
   lateGameEnabled: z.boolean(),
   baseFee: z.number().int().min(0, "0원 이상으로 입력해 주세요.").max(1_000_000),
 });
-
-export const nicknameSchema = z
-  .string()
-  .trim()
-  .min(1, "닉네임을 입력해 주세요.")
-  .max(10, "10자 이하로 입력해 주세요.");
 
 export const candidateInputSchema = z.object({
   kind: z.enum(["PLACE", "ACTIVITY"]),

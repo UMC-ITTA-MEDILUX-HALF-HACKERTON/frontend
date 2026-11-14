@@ -9,6 +9,7 @@ import { PageHeader } from "@common/components/PageHeader/PageHeader";
 import { PickerField } from "@common/components/PickerField/PickerField";
 import { TextField } from "@common/components/TextField/TextField";
 import { Toggle } from "@common/components/Toggle";
+import { PlaceSearchField } from "@features/room/components/PlaceSearchField/PlaceSearchField.client";
 import { useCreateRoom } from "@features/room/mutations/useCreateRoom";
 import { createRoomInputSchema } from "@features/room/schemas/room.schema";
 import {
@@ -33,7 +34,10 @@ export function RoomCreateForm() {
     return { date: toDateInput(base), time: toTimeInput(base) };
   });
   const [name, setName] = useState("");
+  const [nickname, setNickname] = useState("");
   const [place, setPlace] = useState("");
+  // 검색 결과에서 고른 장소의 좌표. 장소 이름을 직접 고치면 비운다.
+  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [date, setDate] = useState(defaults.date);
   const [time, setTime] = useState(defaults.time);
   const [lateGame, setLateGame] = useState(true);
@@ -50,6 +54,9 @@ export function RoomCreateForm() {
     const parsed = createRoomInputSchema.safeParse({
       name,
       place,
+      lat: coords?.lat,
+      lng: coords?.lng,
+      nickname,
       date,
       time,
       lateGameEnabled: lateGame,
@@ -90,13 +97,25 @@ export function RoomCreateForm() {
           maxLength={30}
         />
         <TextField
-          label="약속 장소"
-          placeholder="📍 강남역 ○○포차"
+          label="내 닉네임"
+          placeholder="모임에서 쓸 이름"
+          value={nickname}
+          onChange={(e) => setNickname(e.target.value)}
+          error={errors.nickname}
+          maxLength={10}
+        />
+        <PlaceSearchField
           value={place}
-          onChange={(e) => setPlace(e.target.value)}
-          error={errors.place}
-          hint="장소 반경 100m 안에 들어오면 '장소 근처'로 표시돼요"
-          maxLength={50}
+          onChange={(value) => {
+            setPlace(value);
+            setCoords(null);
+          }}
+          onSelect={(picked) => {
+            setPlace(picked.name);
+            setCoords({ lat: picked.lat, lng: picked.lng });
+          }}
+          selected={coords !== null}
+          error={errors.place ?? errors.lat}
         />
         <div className="grid grid-cols-2 gap-3">
           <PickerField
