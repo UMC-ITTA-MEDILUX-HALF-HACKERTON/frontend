@@ -1,31 +1,111 @@
 @import "tailwindcss";
 
+/* ───────────────────────────────────────────────
+   너빼고다옴 디자인 토큰
+   ─────────────────────────────────────────────── */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Brand */
+  --primary: #5b4cf5;
+  --primary-soft: #eeecff;
+  --primary-pressed: #4a3be0;
+
+  /* Neutral */
+  --ink: #16151f;
+  --sub: #6e6b80;
+  --fill: #f4f3f9;
+  --line: #e4e2ec;
+  --disabled: #b4b2c2;
+  --surface: #ffffff;
+  --canvas: #eeecf5;
+
+  /* Accent */
+  --yellow: #ffd43b;
+  --yellow-soft: #fff6d1;
+  --yellow-ink: #7a5c00;
+
+  /* Status: 도착 / 위치 꺼짐 / 지각비 */
+  --mint: #12b886;
+  --mint-soft: #e3f7f0;
+  --mint-ink: #0b7a59;
+  --amber: #f08c00;
+  --amber-soft: #fff1db;
+  --amber-ink: #a35f00;
+  --coral: #ff5c5c;
+  --coral-soft: #ffe8e8;
+  --coral-ink: #c42f2f;
+
+  /* Avatar 전용 */
+  --rose: #d6517d;
+
+  --background: var(--surface);
+  --foreground: var(--ink);
 }
 
 @theme inline {
+  /* Colors → bg-primary, text-sub, border-line … */
+  --color-primary: var(--primary);
+  --color-primary-soft: var(--primary-soft);
+  --color-primary-pressed: var(--primary-pressed);
+  --color-ink: var(--ink);
+  --color-sub: var(--sub);
+  --color-fill: var(--fill);
+  --color-line: var(--line);
+  --color-disabled: var(--disabled);
+  --color-surface: var(--surface);
+  --color-canvas: var(--canvas);
+  --color-yellow: var(--yellow);
+  --color-yellow-soft: var(--yellow-soft);
+  --color-yellow-ink: var(--yellow-ink);
+  --color-mint: var(--mint);
+  --color-mint-soft: var(--mint-soft);
+  --color-mint-ink: var(--mint-ink);
+  --color-amber: var(--amber);
+  --color-amber-soft: var(--amber-soft);
+  --color-amber-ink: var(--amber-ink);
+  --color-coral: var(--coral);
+  --color-coral-soft: var(--coral-soft);
+  --color-coral-ink: var(--coral-ink);
+  --color-rose: var(--rose);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-mono: var(--font-geist-mono);
-}
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  /* Fonts */
+  --font-sans: var(--font-noto-sans-kr), "Noto Sans KR", system-ui, -apple-system, sans-serif;
+  --font-mono: var(--font-geist-mono);
+
+  /* Type scale → text-display, text-h1, text-h2, text-body, text-caption */
+  --text-display: 30px;
+  --text-display--line-height: 40px;
+  --text-display--font-weight: 900;
+  --text-display--letter-spacing: -0.02em;
+  --text-h1: 24px;
+  --text-h1--line-height: 32px;
+  --text-h1--font-weight: 900;
+  --text-h1--letter-spacing: -0.01em;
+  --text-h2: 18px;
+  --text-h2--line-height: 26px;
+  --text-h2--font-weight: 900;
+  --text-body: 14px;
+  --text-body--line-height: 22px;
+  --text-body--font-weight: 500;
+  --text-caption: 12px;
+  --text-caption--line-height: 18px;
+  --text-caption--font-weight: 400;
+  --text-button: 16px;
+  --text-button--line-height: 24px;
+  --text-button--font-weight: 700;
+
+  /* Radius → rounded-sm/md/lg */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+
+  /* Shadow → shadow-primary */
+  --shadow-primary: 0 6px 16px rgb(91 76 245 / 0.32);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family:
-    var(--font-pretendard),
-    "Pretendard Variable",
-    Pretendard,
-    system-ui,
-    -apple-system,
-    sans-serif;
+  font-family: var(--font-sans);
 }
