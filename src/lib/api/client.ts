@@ -15,6 +15,9 @@ interface ApiFetchOptions<T> {
   // data 검증용 zod 스키마. 넘기면 형식이 다를 때 ApiError 를 던진다.
   schema?: z.ZodType<T>;
   signal?: AbortSignal;
+  // 이 요청에 쓸 참가자 토큰. 참가자 토큰은 모임마다 다르므로 모임 안의 요청은 그 모임의 토큰을 넘긴다.
+  // 넘기지 않으면 저장된 기본 토큰(participant-token.ts)을 쓴다.
+  token?: string | null;
 }
 
 const envelopeSchema = z.object({
@@ -29,10 +32,15 @@ function getBaseUrl(): string {
   return (process.env.NEXT_PUBLIC_API_BASE_URL ?? "").replace(/\/+$/, "");
 }
 
-function buildInit(options: { method: string; body?: unknown; signal?: AbortSignal }): RequestInit {
+function buildInit(options: {
+  method: string;
+  body?: unknown;
+  signal?: AbortSignal;
+  token?: string | null;
+}): RequestInit {
   const headers: Record<string, string> = { Accept: "application/json" };
   if (options.body !== undefined) headers["Content-Type"] = "application/json";
-  const token = getParticipantToken();
+  const token = options.token === undefined ? getParticipantToken() : options.token;
   if (token) headers[PARTICIPANT_TOKEN_HEADER] = token;
   return {
     method: options.method,
@@ -59,10 +67,10 @@ export async function apiFetch<T = unknown>(
   const baseUrl = getBaseUrl();
   if (!baseUrl) throw new ApiError("NEXT_PUBLIC_API_BASE_URL 이 설정되지 않았습니다.", 0);
 
-  const { method = "GET", body, schema, signal } = options;
+  const { method = "GET", body, schema, signal, token } = options;
   let response: Response;
   try {
-    response = await fetch(`${baseUrl}${path}`, buildInit({ method, body, signal }));
+    response = await fetch(`${baseUrl}${path}`, buildInit({ method, body, signal, token }));
   } catch (error) {
     if (error instanceof DOMException && error.name === "AbortError") throw error;
     throw new ApiError("서버에 연결하지 못했습니다.", 0);
