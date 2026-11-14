@@ -1,7 +1,7 @@
 import { USE_MOCK } from "@common/constants/app";
+import { localCandidateApi } from "@features/room/mocks/candidate.local";
 import { mockRoomApi } from "@features/room/mocks/room.mock";
 import {
-  candidateBoardSchema,
   createRoomResultSchema,
   gameBoardSchema,
   joinRoomResultSchema,
@@ -84,25 +84,29 @@ export async function confirmArrival(
   });
 }
 
+// 정하기 탭(후보, 투표, 확정)은 서버 API 가 이 화면과 맞지 않아 아직 연결하지 않았다.
+// 서버는 투표 주제 + 선택지 2개 이상 구조이고 방장만 만들 수 있다. 서버 모드에서는 이 브라우저에만 저장하는
+// 임시 저장소(candidate.local)를 쓰고, 참가자 목록은 서버 모임 정보를 쓴다.
+
 // P0 장소 + 활동 후보 등록
 export async function createCandidate(roomId: string, input: CreateCandidateInput): Promise<void> {
   if (USE_MOCK) {
     await mockRoomApi.createCandidate(roomId, input);
     return;
   }
-  await apiFetch(`${room(roomId)}/candidates`, { method: "POST", body: input });
+  localCandidateApi.createCandidate(roomId, input);
 }
 
 // P0 후보 목록, 투표 수, 미응답 인원 조회
-export function getCandidates(roomId: string, signal?: AbortSignal): Promise<CandidateBoard> {
+export async function getCandidates(roomId: string, signal?: AbortSignal): Promise<CandidateBoard> {
   if (USE_MOCK) return mockRoomApi.getCandidates(roomId);
-  return apiFetch(`${room(roomId)}/candidates`, { schema: candidateBoardSchema, signal });
+  return localCandidateApi.getBoard(await getRoom(roomId, signal));
 }
 
 // P0 1인 1표 등록, 변경
 export async function putVote(roomId: string, input: VoteInput): Promise<void> {
   if (USE_MOCK) return mockRoomApi.putVote(roomId, input);
-  await apiFetch(`${room(roomId)}/votes`, { method: "PUT", body: input });
+  localCandidateApi.putVote(await getRoom(roomId), input);
 }
 
 // P0 주최자가 최종 후보 확정
@@ -111,7 +115,7 @@ export async function decideCandidate(roomId: string, input: DecisionInput): Pro
     await mockRoomApi.decideCandidate(roomId, input);
     return;
   }
-  await apiFetch(`${room(roomId)}/decision`, { method: "PATCH", body: input });
+  localCandidateApi.decide(await getRoom(roomId), input);
 }
 
 // P1 게임 점수 제출
