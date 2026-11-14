@@ -25,6 +25,9 @@ const input = {
   time: "19:00",
   lateGameEnabled: true,
   baseFee: 3000,
+  nickname: "주최자",
+  lat: 37.5559,
+  lng: 126.9368,
 };
 
 describe("mock 플로우: 모임 만들기부터 확정까지", () => {

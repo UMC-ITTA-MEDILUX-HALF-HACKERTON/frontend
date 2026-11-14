@@ -6,6 +6,9 @@ export const queryKeys = createQueryKeyStore({
     list: null,
     detail: (id: string) => [id],
   },
+  place: {
+    search: (query: string) => [query],
+  },
   room: {
     detail: (roomId: string) => [roomId],
     byCode: (code: string) => [code],

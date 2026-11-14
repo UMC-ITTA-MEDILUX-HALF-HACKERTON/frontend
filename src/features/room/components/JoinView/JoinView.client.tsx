@@ -6,7 +6,7 @@ import { useState } from "react";
 import { Button } from "@common/components/Button";
 import { btn } from "@common/utils/button-class";
 import { TextField } from "@common/components/TextField/TextField";
-import { APP_NAME } from "@common/constants/app";
+import { APP_NAME, USE_MOCK } from "@common/constants/app";
 import { RoomSummaryCard } from "@features/room/components/RoomSummaryCard/RoomSummaryCard";
 import { useJoinRoom } from "@features/room/mutations/useJoinRoom";
 import { useRoomByCode } from "@features/room/queries/useRoomByCode";
@@ -21,8 +21,12 @@ export function JoinView({ code }: { code: string }) {
   const [nickname, setNickname] = useState("");
   const [nicknameError, setNicknameError] = useState<string | undefined>();
 
-  if (isPending) return <p className="text-sub p-8 text-center text-sm">불러오는 중...</p>;
-  if (error || !room) {
+  // 실제 백엔드에는 참여 전 미리보기가 없다. 코드와 닉네임만으로 바로 입장한다.
+  const preview = USE_MOCK;
+  if (preview && isPending) {
+    return <p className="text-sub p-8 text-center text-sm">불러오는 중...</p>;
+  }
+  if (preview && (error || !room)) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center gap-2 p-8 text-center">
         <p className="text-lg font-black">모임을 찾을 수 없어요</p>
@@ -31,7 +35,7 @@ export function JoinView({ code }: { code: string }) {
     );
   }
 
-  const host = room.members.find((m) => m.isHost);
+  const host = room?.members.find((m) => m.isHost);
 
   function submit(event: React.FormEvent) {
     event.preventDefault();
@@ -59,13 +63,14 @@ export function JoinView({ code }: { code: string }) {
       <div className="px-5 pt-6">
         <p className="text-primary text-[15px] font-black">{APP_NAME}</p>
         <h1 className="mt-5 text-[26px] leading-tight font-black">
-          <span className="text-primary">{host?.nickname ?? "친구"}</span>님이
+          <span className="text-primary">{host ? `${host.nickname}님` : "친구"}</span>
+          {host ? "이" : "가"}
           <br />
           모임에 초대했어요
         </h1>
       </div>
       <div className="flex flex-1 flex-col gap-4 px-5 pt-5">
-        <RoomSummaryCard room={room} extra="members" />
+        {room ? <RoomSummaryCard room={room} extra="members" /> : null}
         <TextField
           label="닉네임"
           placeholder="모임에서 쓸 이름"

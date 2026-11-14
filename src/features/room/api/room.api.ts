@@ -5,7 +5,7 @@ import {
   createRoomResultSchema,
   gameBoardSchema,
   joinRoomResultSchema,
-  roomSchema,
+  roomDetailSchema,
 } from "@features/room/schemas/room.schema";
 import type {
   CandidateBoard,
@@ -23,7 +23,9 @@ import type {
   UpdateLocationInput,
   VoteInput,
 } from "@features/room/types/room.types";
+import { toCreateRoomRequest, toRoom } from "@features/room/api/room.mapper";
 import { apiFetch } from "@lib/api/client";
+import { ApiError } from "@lib/api/error";
 
 // 경로와 메서드는 백엔드 API 명세서 그대로다. NEXT_PUBLIC_USE_MOCK=true 이면 백엔드 대신 mock 을 쓴다.
 // TODO(백엔드 DTO 확정 후): 실제 응답이 schemas/room.schema.ts 와 다르면 여기서 화면 모델로 바꿔 준다.
@@ -36,14 +38,19 @@ const done = (): void => undefined;
 // P0 모임 생성 + 참여 코드 발급 + 주최자 등록
 export function createRoom(input: CreateRoomInput): Promise<CreateRoomResult> {
   if (USE_MOCK) return mockRoomApi.createRoom(input);
-  return apiFetch("/api/rooms", { method: "POST", body: input, schema: createRoomResultSchema });
+  return apiFetch("/api/rooms", {
+    method: "POST",
+    body: toCreateRoomRequest(input),
+    schema: createRoomResultSchema,
+  });
 }
 
-// 초대 링크(코드)로 모임 미리보기. 명세에 없는 API 라서 모임 조회(GET /api/rooms/{roomId})에 코드를 넣는 것으로 가정한다.
-// TODO(백엔드와 확인): 코드로 모임을 조회하는 API 가 따로 있는지.
+// 초대 링크(코드)로 모임 미리보기. 백엔드는 참가자만 모임을 조회할 수 있어서(roomId 로만 조회), 실제 서버에서는 미리보기를 하지 않는다.
+// JoinView 는 USE_MOCK 이 아니면 이 호출을 건너뛰고 코드와 닉네임으로 바로 입장한다.
 export function getRoomByCode(code: string, signal?: AbortSignal): Promise<Room> {
   if (USE_MOCK) return mockRoomApi.getRoomByCode(code);
-  return apiFetch(room(code), { schema: roomSchema, signal });
+  void signal;
+  return Promise.reject(new ApiError("코드로 모임을 미리 볼 수 없어요.", 0));
 }
 
 // P0 참여 코드 + 닉네임으로 입장, memberId 발급
@@ -55,7 +62,7 @@ export function joinRoom(input: JoinRoomInput): Promise<JoinRoomResult> {
 // P0 모임 정보, 참가자, 약속 시간 조회
 export function getRoom(roomId: string, signal?: AbortSignal): Promise<Room> {
   if (USE_MOCK) return mockRoomApi.getRoom(roomId);
-  return apiFetch(room(roomId), { schema: roomSchema, signal });
+  return apiFetch(room(roomId), { schema: roomDetailSchema, signal }).then(toRoom);
 }
 
 // P0 GPS 위치 갱신, 직선 거리, 100m 판정 (화면은 아직 쓰지 않는다)
