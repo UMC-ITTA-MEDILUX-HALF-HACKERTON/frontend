@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { toCreateRoomRequest, toRoom, toStartAt } from "@features/room/api/room.mapper";
+import {
+  toArrivalRequest,
+  toCreateRoomRequest,
+  toLocalDateTime,
+  toRoom,
+  toStartAt,
+} from "@features/room/api/room.mapper";
 import {
   createRoomResultSchema,
   joinRoomResultSchema,
@@ -91,5 +97,27 @@ describe("방 응답 변환", () => {
       ["1", true, "MOVING"],
       ["2", false, "ARRIVED"],
     ]);
+  });
+});
+
+describe("도착 처리 요청 변환", () => {
+  it("UTC ISO 를 시간대 없는 로컬 시각으로 바꾼다", () => {
+    const iso = new Date(2026, 10, 20, 19, 5, 30).toISOString();
+    expect(toLocalDateTime(iso)).toBe("2026-11-20T19:05:30");
+  });
+
+  it("올바르지 않은 시각은 null 이다", () => {
+    expect(toLocalDateTime("not-a-date")).toBeNull();
+  });
+
+  it("도착 시각이 없으면 서버 현재 시각에 맡긴다", () => {
+    expect(toArrivalRequest({ arrived: true, arrivedAt: null })).toEqual({ arrivedAt: null });
+  });
+
+  it("도착 시각을 로컬 시각으로 보낸다", () => {
+    const iso = new Date(2026, 10, 20, 9, 5, 0).toISOString();
+    expect(toArrivalRequest({ arrived: true, arrivedAt: iso })).toEqual({
+      arrivedAt: "2026-11-20T09:05:00",
+    });
   });
 });

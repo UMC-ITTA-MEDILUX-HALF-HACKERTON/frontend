@@ -23,7 +23,7 @@ import type {
   UpdateLocationInput,
   VoteInput,
 } from "@features/room/types/room.types";
-import { toCreateRoomRequest, toRoom } from "@features/room/api/room.mapper";
+import { toArrivalRequest, toCreateRoomRequest, toRoom } from "@features/room/api/room.mapper";
 import { apiFetch } from "@lib/api/client";
 import { ApiError } from "@lib/api/error";
 
@@ -75,6 +75,8 @@ export function updateLocation(
 }
 
 // P0 주최자 도착 확인, 실제 도착 시각 수정
+// 백엔드에는 도착 취소가 없다 (도착 처리만 있고, 이미 도착한 사람은 시각만 고칠 수 있다).
+// TODO(백엔드와 확인): 도착 취소(arrivedAt 비우기) API 가 생기면 arrived=false 를 연결한다.
 export async function confirmArrival(
   roomId: string,
   memberId: string,
@@ -84,7 +86,11 @@ export async function confirmArrival(
     await mockRoomApi.confirmArrival(roomId, memberId, input);
     return;
   }
-  await apiFetch(`${member(roomId, memberId)}/arrival`, { method: "PATCH", body: input });
+  if (!input.arrived) throw new ApiError("도착 취소는 아직 지원하지 않아요.", 0);
+  await apiFetch(`${member(roomId, memberId)}/arrival`, {
+    method: "PATCH",
+    body: toArrivalRequest(input),
+  });
 }
 
 // P0 장소 + 활동 후보 등록
