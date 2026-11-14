@@ -6,9 +6,9 @@ import type { MetadataRoute } from "next";
 //       (Chrome 은 192 와 512 아이콘이 있어야 설치 가능한 앱으로 인식한다.)
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "너빼고다옴",
-    short_name: "너빼고다옴",
-    description: "UMC 11th 해커톤 너빼고다옴",
+    name: "너만 빼고 다 옴",
+    short_name: "너만 빼고 다 옴",
+    description: "UMC 11th 해커톤 너만 빼고 다 옴",
     start_url: "/",
     display: "standalone",
     background_color: "#ffffff",

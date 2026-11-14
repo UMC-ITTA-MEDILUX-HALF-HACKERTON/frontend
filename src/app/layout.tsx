@@ -12,8 +12,8 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const TITLE = "너빼고다옴";
-const DESCRIPTION = "UMC 11th 해커톤 너빼고다옴";
+const TITLE = "너만 빼고 다 옴";
+const DESCRIPTION = "UMC 11th 해커톤 너만 빼고 다 옴";
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"),
