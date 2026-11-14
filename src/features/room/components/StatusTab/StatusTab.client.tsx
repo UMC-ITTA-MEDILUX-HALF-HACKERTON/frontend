@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 
+import { USE_MOCK } from "@common/constants/app";
 import { MemberAvatar } from "@features/room/components/MemberAvatar/MemberAvatar";
 import { Button } from "@common/components/Button";
 import { btn } from "@common/utils/button-class";
@@ -125,6 +126,16 @@ export function StatusTab({ room, meId }: { room: Room; meId: string | null }) {
             열기
           </Link>
         </section>
+      ) : null}
+
+      {/* 시연용: 약속 시간이 지나기 전에도 게임 화면을 볼 수 있다. mock 모드에서만 보인다. */}
+      {USE_MOCK && room.lateGameEnabled && !(after && closestLate) ? (
+        <Link
+          href={`/rooms/${encodeURIComponent(room.id)}/game`}
+          className="border-ink/20 text-sub flex h-10 items-center justify-center rounded-2xl border border-dashed text-xs font-bold"
+        >
+          mock · 게임 바로 가기
+        </Link>
       ) : null}
 
       {arrivalOpen ? (
