@@ -195,17 +195,16 @@ export const mockRoomApi = {
         code,
         name: input.name,
         place: input.place,
-        // TODO(2단계 약속 장소 선택): 모임 개설 화면에서 고른 좌표를 넣는다.
-        placeLat: null,
-        placeLng: null,
+        // 모임 개설 화면에서 장소 검색으로 고른 좌표
+        placeLat: input.lat,
+        placeLng: input.lng,
         appointmentAt,
         lateGameEnabled: input.lateGameEnabled,
         baseFee: input.baseFee,
-        // TODO(백엔드 DTO 확정 후): 주최자 닉네임을 받는지 확인한다. 디자인에는 입력칸이 없다.
         members: [
           {
             id: memberId,
-            nickname: "주최자",
+            nickname: input.nickname || "주최자",
             isHost: true,
             status: "NEARBY",
             distanceM: null,
