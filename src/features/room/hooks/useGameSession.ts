@@ -8,7 +8,7 @@ import { useSubmitGameScore } from "@features/room/mutations/useSubmitGameScore"
 import { useGameResult } from "@features/room/queries/useGameResult";
 import { useRoom } from "@features/room/queries/useRoom";
 import type { GameBoard, Member, Room } from "@features/room/types/room.types";
-import { gameTurn } from "@features/room/utils/game";
+import { gameTurn, isLateTeam } from "@features/room/utils/game";
 import { ApiError } from "@lib/api/error";
 
 export interface ScoreRow {
@@ -27,7 +27,7 @@ export interface GameSession {
   board: GameBoard;
   me: Member;
   isLate: boolean;
-  // 도착자 평균(반올림). 아직 점수를 낸 도착자가 없으면 null.
+  // 지각자 팀이 이겨야 할 점수(도착자 팀 평균, 반올림). 아직 점수를 낸 도착자가 없거나 도착자 팀이면 null.
   target: number | null;
   rows: ScoreRow[];
   // 지금까지 점수를 낸 사람 수, 전체 인원
@@ -39,7 +39,7 @@ export interface GameSession {
   setLiveScore: (score: number) => void;
   // 내 판이 끝나 점수를 보냈는지
   finished: boolean;
-  // 지각자가 점수를 내서 승패와 지각비가 정해졌는지. true 이면 곧 결과 화면으로 넘어간다.
+  // 참가자 전원이 점수를 내 게임이 끝났는지. true 이면 곧 결과 화면으로 넘어간다.
   resultReady: boolean;
   error: string | null;
   finishGame: (score: number) => void;
@@ -50,7 +50,7 @@ export interface GameSession {
 const RESULT_DELAY_MS = 1600;
 
 // 지각비 게임 한 판의 데이터와 흐름: 내 차례인지 확인하고, 끝나면 점수를 내고, 결과가 나오면 결과 화면으로 간다.
-// 내 차례가 아니면(이미 했거나, 지각자인데 도착자가 아직 안 끝났거나) null 을 돌려주고 규칙 화면으로 돌려보낸다.
+// 내 차례가 아니면(아직 시작 전이거나 이미 했거나) null 을 돌려주고 규칙 화면으로 돌려보낸다.
 export function useGameSession(roomId: string): GameSession | null {
   const router = useRouter();
   const { data: room } = useRoom(roomId);
@@ -68,13 +68,13 @@ export function useGameSession(roomId: string): GameSession | null {
     if (turn !== null && turn !== "PLAY" && !finished) router.replace(introPath);
   }, [turn, finished, router, introPath]);
 
-  // 지각자가 점수를 내면 결과가 정해진다. 게임 오버 화면을 잠깐 보여 준 뒤 결과 화면으로 간다.
-  const outcomeKnown = board?.outcome !== null && board?.outcome !== undefined;
+  // 참가자 전원이 점수를 내면 게임이 끝난다. 게임 오버 화면을 잠깐 보여 준 뒤 결과 화면으로 간다.
+  const gameFinished = board?.status === "FINISHED";
   useEffect(() => {
-    if (!finished || !submit.isSuccess || !outcomeKnown) return;
+    if (!finished || !submit.isSuccess || !gameFinished) return;
     const id = setTimeout(() => router.replace(resultPath), RESULT_DELAY_MS);
     return () => clearTimeout(id);
-  }, [finished, submit.isSuccess, outcomeKnown, router, resultPath]);
+  }, [finished, submit.isSuccess, gameFinished, router, resultPath]);
 
   const me = room?.members.find((m) => m.id === meId);
   if (!room || !board || !me || (turn !== "PLAY" && !finished)) return null;
@@ -91,6 +91,7 @@ export function useGameSession(roomId: string): GameSession | null {
     };
   });
 
+  const isLate = isLateTeam(me, board);
   const error =
     submit.error instanceof ApiError
       ? submit.error.message
@@ -103,18 +104,18 @@ export function useGameSession(roomId: string): GameSession | null {
     room,
     board,
     me,
-    isLate: me.id === board.lateMemberId,
-    target: board.arrivedAverage !== null ? Math.round(board.arrivedAverage) : null,
+    isLate,
+    target: isLate && board.onTimeAverage !== null ? Math.round(board.onTimeAverage) : null,
     rows,
     // 내 점수가 서버에 반영되기 전에도 "내 판이 끝났다"는 것을 바로 보여 준다.
     completedCount:
       board.scores.length + (finished && !board.scores.some((s) => s.memberId === me.id) ? 1 : 0),
-    totalCount: room.members.length,
+    totalCount: board.lateTotalCount + board.onTimeTotalCount || room.members.length,
     bestScore: Math.max(0, liveScore, ...board.scores.map((s) => s.score)),
     liveScore,
     setLiveScore,
     finished,
-    resultReady: outcomeKnown,
+    resultReady: gameFinished,
     error,
     finishGame: (score: number) => {
       setLiveScore(score);

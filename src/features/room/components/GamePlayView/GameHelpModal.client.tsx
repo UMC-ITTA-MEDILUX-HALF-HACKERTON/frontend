@@ -76,7 +76,7 @@ export function GameHelpModal({
 
           <div className="flex flex-1 flex-col gap-2 rounded-2xl bg-[#f3f5f9] px-[13px] py-3">
             <h3 className="text-[12.5px] font-black text-[#151a24]">지각비는 이렇게 정해져요</h3>
-            <p className="text-xs text-[#6b7385]">늦은 사람 점수 vs 도착자 평균 점수</p>
+            <p className="text-xs text-[#6b7385]">지각자 팀 평균 vs 도착자 팀 평균</p>
             <Rule label="🎉 늦은 사람이 높으면" value="면제" tone="text-[#12b886]" />
             <Rule label="🤝 같으면" value={formatWon(baseFee)} />
             <Rule label="😅 낮으면" value={formatWon(baseFee * 2)} tone="text-[#ff5c5c]" />

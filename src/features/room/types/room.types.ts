@@ -115,12 +115,28 @@ export interface ConfirmArrivalInput {
   arrivedAt: string | null;
 }
 
-// 지각비 게임 (T-Rex). 지각자 1명이 도착자 전원의 평균 점수와 겨룬다.
-export type GameOutcome = "WIN" | "LOSE" | "DRAW";
+// 지각비 게임 (T-Rex). 방장이 시작하면 그 순간의 참가자가 지각자 팀과 도착자 팀으로 나뉘고,
+// 각자 점수를 한 번 내서 두 팀의 평균을 비교한다. 비교와 지각비 계산은 서버가 한다.
+export type GameStatus = "NOT_STARTED" | "PLAYING" | "FINISHED";
+export type GameTeam = "LATE" | "ON_TIME";
+// 지각자 팀 기준 결과. 한 팀이라도 제출자가 없으면 PENDING.
+export type GameOutcome = "WIN" | "LOSE" | "DRAW" | "PENDING";
 
 export interface GameScore {
   memberId: string;
+  nickname: string;
+  team: GameTeam;
   score: number;
+}
+
+export interface GameLateMember {
+  memberId: string;
+  nickname: string;
+  // 현재 지각 분. 아직 도착하지 않았으면 null.
+  lateMinutes: number | null;
+  score: number | null;
+  // 이 지각자가 내야 하는 지각비
+  penalty: number;
 }
 
 export interface GameScoreInput {
@@ -128,17 +144,17 @@ export interface GameScoreInput {
 }
 
 export interface GameBoard {
-  // 지각자(도착하지 않은 참가자). 모두 도착했으면 null.
-  lateMemberId: string | null;
+  status: GameStatus;
+  // 팀 평균. 제출자가 없으면 null.
+  lateAverage: number | null;
+  onTimeAverage: number | null;
+  lateSubmittedCount: number;
+  lateTotalCount: number;
+  onTimeSubmittedCount: number;
+  onTimeTotalCount: number;
+  outcome: GameOutcome;
+  // 지각자 1인당 지각비 (승리 0원, 패배 기본 x 2, 무승부와 대기 중은 기본)
+  penaltyPerPerson: number;
+  lateMembers: GameLateMember[];
   scores: GameScore[];
-  arrivedCount: number;
-  // 점수를 낸 도착자들의 점수와 평균. 아직 없으면 평균은 null.
-  arrivedScores: number[];
-  arrivedAverage: number | null;
-  lateScore: number | null;
-  // 지각자가 점수를 냈을 때만 정해진다.
-  outcome: GameOutcome | null;
-  // 지각비. 승리 0원, 패배 기본 지각비 x 2, 무승부 기본 지각비.
-  fee: number | null;
-  baseFee: number;
 }
