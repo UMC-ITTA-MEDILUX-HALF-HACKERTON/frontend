@@ -82,6 +82,8 @@ export interface CreateCandidateInput {
   kind: CandidateKind;
   name: string;
   mapLink?: string;
+  // 활동의 예상 시간(분). 화면에서만 고르고 아직 백엔드 모델에는 없다 (mock 은 저장하지 않는다).
+  expectedMinutes?: number;
 }
 
 export interface VoteInput {

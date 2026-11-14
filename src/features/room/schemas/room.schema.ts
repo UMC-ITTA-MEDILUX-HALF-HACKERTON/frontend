@@ -91,4 +91,10 @@ export const candidateInputSchema = z.object({
   kind: z.enum(["PLACE", "ACTIVITY"]),
   name: z.string().trim().min(1, "이름을 입력해 주세요.").max(30, "30자 이하로 입력해 주세요."),
   mapLink: z.string().trim().max(300).optional(),
+  expectedMinutes: z
+    .number()
+    .int()
+    .positive()
+    .max(24 * 60)
+    .optional(),
 });

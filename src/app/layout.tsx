@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Geist_Mono, Noto_Sans_KR } from "next/font/google";
+import { Geist_Mono, Noto_Sans_KR, Press_Start_2P } from "next/font/google";
 
 import "@styles/globals.css";
 
@@ -16,6 +16,14 @@ const geistMono = Geist_Mono({
 const notoSansKr = Noto_Sans_KR({
   variable: "--font-noto-sans-kr",
   weight: ["400", "500", "700", "900"],
+  subsets: ["latin"],
+  preload: false,
+});
+
+// 지각비 게임의 점수와 카운트다운에 쓰는 픽셀 서체 (Figma: Press Start 2P).
+const pixelFont = Press_Start_2P({
+  variable: "--font-pixel",
+  weight: "400",
   subsets: ["latin"],
   preload: false,
 });
@@ -37,7 +45,10 @@ export const viewport: Viewport = { viewportFit: "cover", themeColor: "#5b4cf5" 
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="ko" className={`${notoSansKr.variable} ${geistMono.variable} h-full antialiased`}>
+    <html
+      lang="ko"
+      className={`${notoSansKr.variable} ${geistMono.variable} ${pixelFont.variable} h-full antialiased`}
+    >
       <body className="bg-canvas min-h-full">
         <Providers>
           {/* 모바일 화면 기준(디자인 360px대). 데스크톱에서는 가운데에 폭을 제한해 보여 준다. */}

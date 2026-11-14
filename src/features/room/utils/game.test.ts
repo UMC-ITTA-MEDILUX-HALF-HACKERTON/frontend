@@ -2,7 +2,15 @@ import { describe, expect, it } from "vitest";
 
 import type { Member, Room } from "@features/room/types/room.types";
 
-import { average, buildGameBoard, gameTurn, judge, pickLateMemberId, subject } from "./game";
+import {
+  average,
+  buildGameBoard,
+  gameTurn,
+  judge,
+  padScore,
+  pickLateMemberId,
+  subject,
+} from "./game";
 
 describe("judge (지각자 점수 vs 도착자 평균)", () => {
   it("높으면 승리, 지각비 0원", () => {
@@ -143,5 +151,17 @@ describe("subject", () => {
     expect(subject("철수")).toBe("철수가");
     expect(subject("민준")).toBe("민준이");
     expect(subject("Amy")).toBe("Amy가");
+  });
+});
+
+describe("padScore", () => {
+  it("점수를 다섯 자리로 채운다", () => {
+    expect(padScore(250)).toBe("00250");
+    expect(padScore(0)).toBe("00000");
+    expect(padScore(12.9)).toBe("00012");
+  });
+
+  it("음수는 0으로 본다", () => {
+    expect(padScore(-5)).toBe("00000");
   });
 });
