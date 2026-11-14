@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 import { APP_NAME } from "@common/constants/app";
@@ -10,11 +11,12 @@ export default function Home() {
       <span aria-hidden className="absolute bottom-40 -left-14 size-40 rounded-full bg-white/10" />
 
       <div className="relative flex items-center gap-3">
+        {/* 로고 마크: Figma 의 SVG (흰 둥근 사각형 46px 안에 30px) */}
         <span
           aria-hidden
-          className="text-primary flex size-11 items-center justify-center rounded-2xl bg-white text-lg font-black"
+          className="flex size-[46px] items-center justify-center rounded-[15px] bg-white"
         >
-          ●
+          <Image src="/images/logo-mark.svg" alt="" width={30} height={30} unoptimized priority />
         </span>
         <p className="text-lg font-black">{APP_NAME}</p>
       </div>
