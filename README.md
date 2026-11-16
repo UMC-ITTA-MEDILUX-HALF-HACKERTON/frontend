@@ -2,13 +2,12 @@
 
 UMC 11th 해커톤 "너만 빼고 다 옴" 웹 프론트엔드입니다. 모임을 만들고, 친구들이 도착하는 걸 확인하고, 지각한 사람에게 지각비 게임을 거는 서비스입니다.
 
+> 해커톤이 끝나 운영 서버와 배포를 내렸습니다. `.env.local` 에 `NEXT_PUBLIC_USE_MOCK=true` 를 두고 `pnpm dev` 로 실행하면 서버 없이 mock 데이터로 둘러볼 수 있습니다. 지도는 카카오 키가 있어야 보입니다.
+
 ## 링크
 
 | 구분                      | 주소                                                                               |
 | ------------------------- | ---------------------------------------------------------------------------------- |
-| 서비스                    | https://allbutyou.devnoco.com                                                      |
-| API 서버                  | https://api.allbutyou.devnoco.com                                                  |
-| API 문서 (Swagger)        | https://api.allbutyou.devnoco.com/swagger-ui.html                                  |
 | Frontend 저장소           | https://github.com/UMC-ITTA-MEDILUX-HALF-HACKERTON/frontend                        |
 | Backend 저장소            | https://github.com/UMC-ITTA-MEDILUX-HALF-HACKERTON/backend                         |
 | Deploy 저장소 (서버 구성) | https://github.com/UMC-ITTA-MEDILUX-HALF-HACKERTON/deploy                          |
@@ -79,8 +78,7 @@ src/
 
 ## 배포
 
-- **프론트**: `main` 에 머지되면 GitHub Actions 가 Vercel 로 자동 배포합니다. PR 은 프리뷰로 배포됩니다. 워크플로는 [`.github/workflows/deploy.yml`](./.github/workflows/deploy.yml) 입니다.
-- **백엔드**: AWS EC2 에서 docker compose 로 운영합니다. 구성은 Deploy 저장소를 참고하세요.
+해커톤 종료 후 운영 서버(AWS)와 Vercel 배포를 모두 내렸습니다. 서버가 없으므로 `NEXT_PUBLIC_USE_MOCK=true` 로 실행합니다.
 
 ## 협업 규칙
 
